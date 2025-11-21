@@ -1,13 +1,88 @@
 import { Card } from "@/components/ui/card";
 import { RiskMeter } from "@/components/RiskMeter";
 import { AlertCard } from "@/components/AlertCard";
-import { mockAlerts, mockHoneypotLogs, mockPredictions, mockSystemStatus, threatTimelineData, attackTypesData } from "@/lib/mockData";
-import { LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { mockSystemStatus, threatTimelineData, attackTypesData } from "@/lib/mockData";
+import { LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { Activity, Shield, Target, Zap } from "lucide-react";
+import { useState, useEffect } from "react";
+import { api, subscribeToAlerts, subscribeToHoneypotEvents, subscribeToPredictions } from "@/lib/api";
+import { Alert, HoneypotEvent, Prediction } from "@/lib/types";
+import { useToast } from "@/hooks/use-toast";
 
 const COLORS = ['hsl(var(--destructive))', 'hsl(var(--warning))', 'hsl(var(--accent))', 'hsl(var(--primary))', 'hsl(var(--success))', 'hsl(var(--muted))'];
 
 export default function Dashboard() {
+  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [honeypotEvents, setHoneypotEvents] = useState<HoneypotEvent[]>([]);
+  const [predictions, setPredictions] = useState<Prediction[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    loadData();
+    
+    // Subscribe to real-time updates
+    const alertsChannel = subscribeToAlerts((newAlert) => {
+      setAlerts(prev => [newAlert, ...prev]);
+      toast({
+        title: `New Alert: ${newAlert.severity.toUpperCase()}`,
+        description: newAlert.title,
+        variant: newAlert.severity === 'critical' ? 'destructive' : 'default',
+      });
+    });
+
+    const honeypotChannel = subscribeToHoneypotEvents((newEvent) => {
+      setHoneypotEvents(prev => [newEvent, ...prev]);
+    });
+
+    const predictionsChannel = subscribeToPredictions((newPrediction) => {
+      setPredictions(prev => [newPrediction, ...prev.slice(0, 4)]);
+      toast({
+        title: 'New Prediction',
+        description: newPrediction.step,
+      });
+    });
+
+    return () => {
+      alertsChannel.unsubscribe();
+      honeypotChannel.unsubscribe();
+      predictionsChannel.unsubscribe();
+    };
+  }, [toast]);
+
+  const loadData = async () => {
+    try {
+      const [alertsData, eventsData, predictionsData] = await Promise.all([
+        api.getAlerts(),
+        api.getHoneypotEvents(),
+        api.getPredictions(),
+      ]);
+      setAlerts(alertsData);
+      setHoneypotEvents(eventsData);
+      setPredictions(predictionsData);
+    } catch (error) {
+      console.error('Error loading data:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load dashboard data',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const activeAlerts = alerts.filter(a => a.status === 'active');
+  const avgThreatScore = honeypotEvents.length > 0
+    ? Math.round(honeypotEvents.reduce((acc, e) => acc + e.threat_score, 0) / honeypotEvents.length)
+    : 0;
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-96">
+      <p className="text-muted-foreground">Loading...</p>
+    </div>;
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -21,9 +96,7 @@ export default function Dashboard() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground">Active Threats</p>
-              <p className="text-3xl font-bold text-destructive mt-1">
-                {mockAlerts.filter(a => a.status === "active").length}
-              </p>
+              <p className="text-3xl font-bold text-destructive mt-1">{activeAlerts.length}</p>
             </div>
             <div className="p-3 bg-destructive/20 rounded-lg">
               <Activity className="h-6 w-6 text-destructive" />
@@ -35,7 +108,7 @@ export default function Dashboard() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground">Honeypot Hits</p>
-              <p className="text-3xl font-bold text-warning mt-1">{mockHoneypotLogs.length}</p>
+              <p className="text-3xl font-bold text-warning mt-1">{honeypotEvents.length}</p>
             </div>
             <div className="p-3 bg-warning/20 rounded-lg">
               <Target className="h-6 w-6 text-warning" />
@@ -47,7 +120,7 @@ export default function Dashboard() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground">Predictions</p>
-              <p className="text-3xl font-bold text-primary mt-1">{mockPredictions.length}</p>
+              <p className="text-3xl font-bold text-primary mt-1">{predictions.length}</p>
             </div>
             <div className="p-3 bg-primary/20 rounded-lg">
               <Zap className="h-6 w-6 text-primary" />
@@ -72,12 +145,10 @@ export default function Dashboard() {
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Risk Meter */}
         <div className="lg:col-span-1">
-          <RiskMeter score={73} />
+          <RiskMeter score={avgThreatScore} />
         </div>
 
-        {/* Threat Timeline */}
         <div className="lg:col-span-2">
           <Card className="p-6">
             <h3 className="text-lg font-semibold text-foreground mb-4">24-Hour Threat Activity</h3>
@@ -107,32 +178,33 @@ export default function Dashboard() {
       </div>
 
       {/* Predicted Next Attack Step */}
-      <Card className="p-6 border-accent/30 bg-gradient-to-br from-accent/5 to-transparent">
-        <div className="flex items-center gap-2 mb-4">
-          <Zap className="h-5 w-5 text-accent" />
-          <h3 className="text-lg font-semibold text-foreground">AI Predicted Next Attack Step</h3>
-        </div>
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="font-medium text-foreground">{mockPredictions[0].step}</span>
-            <span className="text-accent font-bold">{mockPredictions[0].confidence}% confidence</span>
+      {predictions.length > 0 && (
+        <Card className="p-6 border-accent/30 bg-gradient-to-br from-accent/5 to-transparent">
+          <div className="flex items-center gap-2 mb-4">
+            <Zap className="h-5 w-5 text-accent" />
+            <h3 className="text-lg font-semibold text-foreground">AI Predicted Next Attack Step</h3>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-            <div>
-              <span className="text-muted-foreground">Impact: </span>
-              <span className="text-foreground">{mockPredictions[0].impact}</span>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="font-medium text-foreground">{predictions[0].step}</span>
+              <span className="text-accent font-bold">{predictions[0].confidence}% confidence</span>
             </div>
-            <div>
-              <span className="text-muted-foreground">Prevention: </span>
-              <span className="text-foreground">{mockPredictions[0].prevention}</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="text-muted-foreground">Impact: </span>
+                <span className="text-foreground">{predictions[0].impact}</span>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Prevention: </span>
+                <span className="text-foreground">{predictions[0].prevention}</span>
+              </div>
             </div>
           </div>
-        </div>
-      </Card>
+        </Card>
+      )}
 
-      {/* Attack Types & Recent Alerts */}
+      {/* Attack Types & System Status */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Attack Types Distribution */}
         <Card className="p-6">
           <h3 className="text-lg font-semibold text-foreground mb-4">Attack Type Distribution</h3>
           <ResponsiveContainer width="100%" height={250}>
@@ -162,7 +234,6 @@ export default function Dashboard() {
           </ResponsiveContainer>
         </Card>
 
-        {/* System Status */}
         <Card className="p-6">
           <h3 className="text-lg font-semibold text-foreground mb-4">System Status</h3>
           <div className="space-y-4">
@@ -186,11 +257,17 @@ export default function Dashboard() {
       {/* Recent Alerts */}
       <div>
         <h3 className="text-lg font-semibold text-foreground mb-4">Recent Alerts</h3>
-        <div className="space-y-3">
-          {mockAlerts.slice(0, 3).map((alert) => (
-            <AlertCard key={alert.id} alert={alert} />
-          ))}
-        </div>
+        {alerts.length > 0 ? (
+          <div className="space-y-3">
+            {alerts.slice(0, 3).map((alert) => (
+              <AlertCard key={alert.id} alert={alert} />
+            ))}
+          </div>
+        ) : (
+          <Card className="p-8 text-center">
+            <p className="text-muted-foreground">No alerts yet. System is secure.</p>
+          </Card>
+        )}
       </div>
     </div>
   );

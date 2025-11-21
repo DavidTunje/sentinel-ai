@@ -1,9 +1,54 @@
 import { Card } from "@/components/ui/card";
-import { mockPredictions } from "@/lib/mockData";
 import { GitBranch, Zap, Shield, AlertTriangle } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { useState, useEffect } from "react";
+import { api, subscribeToPredictions } from "@/lib/api";
+import type { Prediction } from "@/lib/types";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Prediction() {
+  const [predictions, setPredictions] = useState<Prediction[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    loadPredictions();
+
+    const channel = subscribeToPredictions((newPrediction) => {
+      setPredictions(prev => [newPrediction, ...prev]);
+      toast({
+        title: 'New Prediction',
+        description: newPrediction.step,
+      });
+    });
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [toast]);
+
+  const loadPredictions = async () => {
+    try {
+      const data = await api.getPredictions();
+      setPredictions(data);
+    } catch (error) {
+      console.error('Error loading predictions:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load predictions',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-96">
+      <p className="text-muted-foreground">Loading predictions...</p>
+    </div>;
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -48,7 +93,9 @@ export default function Prediction() {
               <GitBranch className="h-10 w-10 text-accent" />
             </div>
             <p className="text-sm font-medium text-accent">Predicted Next</p>
-            <p className="text-xs text-muted-foreground">Lateral Movement</p>
+            <p className="text-xs text-muted-foreground">
+              {predictions[0]?.step.substring(0, 20) || 'Analyzing...'}
+            </p>
           </div>
 
           <div className="hidden md:block">
@@ -68,37 +115,43 @@ export default function Prediction() {
       {/* Prediction Details */}
       <div className="space-y-4">
         <h3 className="text-lg font-semibold text-foreground">Detailed Predictions</h3>
-        {mockPredictions.map((prediction, index) => (
-          <Card key={index} className="p-6 border-l-4 border-l-accent">
-            <div className="space-y-4">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1">
-                  <h4 className="font-semibold text-foreground mb-2">{prediction.step}</h4>
-                  <div className="space-y-2">
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-1">Confidence Level</p>
-                      <div className="flex items-center gap-3">
-                        <Progress value={prediction.confidence} className="flex-1" />
-                        <span className="text-sm font-bold text-accent">{prediction.confidence}%</span>
+        {predictions.length > 0 ? (
+          predictions.map((prediction) => (
+            <Card key={prediction.id} className="p-6 border-l-4 border-l-accent">
+              <div className="space-y-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-foreground mb-2">{prediction.step}</h4>
+                    <div className="space-y-2">
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-1">Confidence Level</p>
+                        <div className="flex items-center gap-3">
+                          <Progress value={prediction.confidence} className="flex-1" />
+                          <span className="text-sm font-bold text-accent">{prediction.confidence}%</span>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-border">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">Impact Assessment</p>
-                  <p className="text-sm text-foreground">{prediction.impact}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">Recommended Prevention</p>
-                  <p className="text-sm text-foreground">{prediction.prevention}</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-border">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground mb-1">Impact Assessment</p>
+                    <p className="text-sm text-foreground">{prediction.impact}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground mb-1">Recommended Prevention</p>
+                    <p className="text-sm text-foreground">{prediction.prevention}</p>
+                  </div>
                 </div>
               </div>
-            </div>
+            </Card>
+          ))
+        ) : (
+          <Card className="p-8 text-center">
+            <p className="text-muted-foreground">No predictions available yet</p>
           </Card>
-        ))}
+        )}
       </div>
     </div>
   );

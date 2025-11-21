@@ -1,1 +1,22 @@
 project_id = "imfkxnznsoiqgesdbqlh"
+
+[functions.predict]
+verify_jwt = false
+
+[functions.honeypot-login]
+verify_jwt = false
+
+[functions.honeypot-api]
+verify_jwt = false
+
+[functions.honeypot-db]
+verify_jwt = false
+
+[functions.simulation-run]
+verify_jwt = false
+
+[functions.alerts]
+verify_jwt = false
+
+[functions.system-status]
+verify_jwt = false

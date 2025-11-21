@@ -14,7 +14,180 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      alerts: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          ip_address: string | null
+          recommended_action: string | null
+          severity: string
+          source: string
+          status: string
+          timestamp: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          ip_address?: string | null
+          recommended_action?: string | null
+          severity: string
+          source: string
+          status?: string
+          timestamp?: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          ip_address?: string | null
+          recommended_action?: string | null
+          severity?: string
+          source?: string
+          status?: string
+          timestamp?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      honeypot_events: {
+        Row: {
+          body: Json | null
+          created_at: string
+          endpoint: string
+          headers: Json | null
+          id: string
+          ip_address: string
+          method: string
+          pattern: string | null
+          threat_score: number
+          timestamp: string
+        }
+        Insert: {
+          body?: Json | null
+          created_at?: string
+          endpoint: string
+          headers?: Json | null
+          id?: string
+          ip_address: string
+          method: string
+          pattern?: string | null
+          threat_score?: number
+          timestamp?: string
+        }
+        Update: {
+          body?: Json | null
+          created_at?: string
+          endpoint?: string
+          headers?: Json | null
+          id?: string
+          ip_address?: string
+          method?: string
+          pattern?: string | null
+          threat_score?: number
+          timestamp?: string
+        }
+        Relationships: []
+      }
+      predictions: {
+        Row: {
+          confidence: number
+          created_at: string
+          explanation: string | null
+          id: string
+          impact: string
+          prevention: string
+          recommended_action: string | null
+          step: string
+          timestamp: string
+        }
+        Insert: {
+          confidence: number
+          created_at?: string
+          explanation?: string | null
+          id?: string
+          impact: string
+          prevention: string
+          recommended_action?: string | null
+          step: string
+          timestamp?: string
+        }
+        Update: {
+          confidence?: number
+          created_at?: string
+          explanation?: string | null
+          id?: string
+          impact?: string
+          prevention?: string
+          recommended_action?: string | null
+          step?: string
+          timestamp?: string
+        }
+        Relationships: []
+      }
+      simulations: {
+        Row: {
+          attack_type: string
+          blocked: boolean | null
+          created_at: string
+          duration: string | null
+          id: string
+          logs: Json | null
+          name: string
+          result: string | null
+          status: string
+          timestamp: string
+        }
+        Insert: {
+          attack_type: string
+          blocked?: boolean | null
+          created_at?: string
+          duration?: string | null
+          id?: string
+          logs?: Json | null
+          name: string
+          result?: string | null
+          status?: string
+          timestamp?: string
+        }
+        Update: {
+          attack_type?: string
+          blocked?: boolean | null
+          created_at?: string
+          duration?: string | null
+          id?: string
+          logs?: Json | null
+          name?: string
+          result?: string | null
+          status?: string
+          timestamp?: string
+        }
+        Relationships: []
+      }
+      system_status: {
+        Row: {
+          id: string
+          last_updated: string
+          module: string
+          status: string
+        }
+        Insert: {
+          id?: string
+          last_updated?: string
+          module: string
+          status: string
+        }
+        Update: {
+          id?: string
+          last_updated?: string
+          module?: string
+          status?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
