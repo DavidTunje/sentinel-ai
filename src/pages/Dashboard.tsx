@@ -88,7 +88,8 @@ export default function Dashboard() {
         title: '🎯 Step 1: Login Attack',
         description: 'Simulating brute force login attempts...',
       });
-      await api.testHoneypotLogin('admin', 'password123');
+      const loginResult = await api.testHoneypotLogin('admin', 'password123');
+      console.log('Login honeypot triggered:', loginResult);
 
       // Attack 2: SQL Injection on API
       await new Promise(resolve => setTimeout(resolve, 2000));
@@ -96,7 +97,8 @@ export default function Dashboard() {
         title: '🎯 Step 2: API Attack',
         description: 'Simulating SQL injection on API endpoint...',
       });
-      await api.testHoneypotAPI('users?id=1 OR 1=1');
+      const apiResult = await api.testHoneypotAPI('users');
+      console.log('API honeypot triggered:', apiResult);
 
       // Attack 3: Database exploit
       await new Promise(resolve => setTimeout(resolve, 2000));
@@ -104,7 +106,8 @@ export default function Dashboard() {
         title: '🎯 Step 3: Database Attack',
         description: 'Simulating database exploitation attempt...',
       });
-      await api.testHoneypotDB('SELECT * FROM users; DROP TABLE users;');
+      const dbResult = await api.testHoneypotDB('SELECT * FROM users; DROP TABLE users;');
+      console.log('DB honeypot triggered:', dbResult);
 
       await new Promise(resolve => setTimeout(resolve, 1000));
       toast({
