@@ -85,49 +85,34 @@ export const api = {
 
   // Honeypot endpoints (for testing)
   async testHoneypotLogin(username: string, password: string) {
-    try {
-      const response = await fetch(`${FUNCTIONS_URL}/honeypot-login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      });
-      const data = await response.json();
-      // Honeypot returns 401, which is expected behavior
-      return { success: true, data };
-    } catch (error) {
-      console.error('Honeypot login error:', error);
-      return { success: false, error };
-    }
+    const response = await fetch(`${FUNCTIONS_URL}/honeypot-login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+    });
+    const data = await response.json();
+    // Honeypot returns 401, which is expected behavior - this is success for demo
+    return { success: true, data, status: response.status };
   },
 
   async testHoneypotAPI(endpoint: string) {
-    try {
-      const response = await fetch(`${FUNCTIONS_URL}/honeypot-api/${endpoint}`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      const data = await response.json();
-      return { success: true, data };
-    } catch (error) {
-      console.error('Honeypot API error:', error);
-      return { success: false, error };
-    }
+    const response = await fetch(`${FUNCTIONS_URL}/honeypot-api/${endpoint}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const data = await response.json();
+    return { success: true, data, status: response.status };
   },
 
   async testHoneypotDB(query: string) {
-    try {
-      const response = await fetch(`${FUNCTIONS_URL}/honeypot-db`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query }),
-      });
-      const data = await response.json();
-      // Honeypot returns 500, which is expected behavior
-      return { success: true, data };
-    } catch (error) {
-      console.error('Honeypot DB error:', error);
-      return { success: false, error };
-    }
+    const response = await fetch(`${FUNCTIONS_URL}/honeypot-db`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query }),
+    });
+    const data = await response.json();
+    // Honeypot returns 500, which is expected behavior - this is success for demo
+    return { success: true, data, status: response.status };
   },
 };
 
