@@ -76,7 +76,12 @@ Respond in JSON format:
     }
 
     const aiData = await aiResponse.json();
-    const prediction = JSON.parse(aiData.choices[0].message.content);
+    let aiContent = aiData.choices[0].message.content;
+    
+    // Remove markdown code block wrappers if present
+    aiContent = aiContent.replace(/^```json\s*\n?/i, '').replace(/\n?```\s*$/i, '');
+    
+    const prediction = JSON.parse(aiContent);
 
     console.log('AI Prediction:', prediction);
 
