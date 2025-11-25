@@ -85,10 +85,10 @@ serve(async (req) => {
       body: JSON.stringify({ fusedData }),
     }).catch(err => console.error('Prediction call failed:', err));
 
-    // Return fake error to attacker
+    // Return fake error message but with 200 status to avoid frontend runtime errors
     return new Response(
       JSON.stringify({ error: 'Invalid credentials' }),
-      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
