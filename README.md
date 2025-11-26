@@ -49,7 +49,7 @@ This project is built with:
 - TypeScript
 - React
 - shadcn-ui
-- Tailwind CSS
+- Tailwind css
 
 ## Can I connect a custom domain to my Lovable project?
 
