@@ -1,4 +1,4 @@
-# Welcome to your prediguaard project
+# Welcome to your prediguard project
 
 ## Project info
 
@@ -8,7 +8,7 @@
 
 There are several ways of editing your application.
 
-**Use Lovable**
+**Use prediguard**
 
 Simply visit the [ Project](https://.dev/projects/87f5485c-5361-4597-9de8-3d306df2dda5) and start prompting.
 
@@ -16,7 +16,7 @@ Changes made via Lovable will be committed automatically to this repo.
 
 **Use your preferred IDE**
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in prediguard.
 
 The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
