@@ -1,4 +1,4 @@
-# Welcome to your prediguard  project
+# Welcome to your Lovable project
 
 ## Project info
 
@@ -16,7 +16,7 @@ Changes made via  will be committed automatically to this repo.
 
 **Use your preferred IDE**
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in .
+If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
 
 The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
@@ -62,7 +62,7 @@ This project is built with:
 
 ## How can I deploy this project?
 
-Simply open [Lovable](https://.dev/projects/87f5485c-5361-4597-9de8-3d306df2dda5) and click on Share -> Publish.
+Simply open [](https://.dev/projects/87f5485c-5361-4597-9de8-3d306df2dda5) and click on Share -> Publish.
 
 ## Can I connect a custom domain to my  project?
 
